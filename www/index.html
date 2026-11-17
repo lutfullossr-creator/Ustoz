@@ -2,6 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ingliz tili lug’at daftari</title>
 <style>
@@ -190,6 +191,7 @@ form button{grid-column:1/-1;background:var(--accent);color:var(--paper);border-
 <section id="chat"><div class="scn" id="csc"></div><div class="cbar"><button class="tab" id="cai" aria-pressed="false" hidden>AI bilan</button><button class="tab" id="cvo" aria-pressed="false">Ovozli</button><button class="tab" id="ctr" aria-pressed="true">Tarjima</button><button class="tab" id="crs">Qaytadan</button></div><div class="msgs" id="cm" aria-live="polite"></div><div id="cc"></div><div class="cin"><input id="cx" class="search" placeholder="Inglizcha yozing..." autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Xabar"><button id="cd" aria-label="Ovoz bilan yozish" hidden>Mikrofon</button><button id="cs" class="prim">Yuborish</button></div><p class="note">Oflayn bot tayyor savollar asosida ishlaydi. Onlayn sahifada “AI bilan” tugmasi chiqadi: u haqiqiy sun’iy intellekt bilan suhbat.</p></section>
 <div class="pager" id="pager"></div>
 </div>
+<script src="cordova.js"></script>
 <script>
 var PER=15;var ICON='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
 var BASE=[
@@ -263,16 +265,21 @@ try{localStorage.setItem(KEY,JSON.stringify(extra))}catch(x){}
 pos="";q="";document.getElementById("q").value="";chips();page=Math.ceil(all().length/PER)-1;e.target.reset();render();animate(1);
 });
 function animate(d){var s=document.getElementById("sheet");s.style.setProperty("--dx",(d*16)+"px");s.classList.remove("swap");void s.offsetWidth;s.classList.add("swap")}
+function stopSpeak(){try{if(window.TTS&&window.TTS.speak)window.TTS.speak({text:"",cancel:true},function(){},function(){})}catch(x){}try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(x){}}
+function say(t,rate,done){done=done||function(){};
+if(window.TTS&&window.TTS.speak){try{var r=window.TTS.speak({text:t,locale:"en-US",rate:rate,cancel:true},function(){window.__tok=(window.__tok||0)+1;done()},function(m){window.__terr=String(m&&m.message||m);done()});if(r&&r.then)r.then(done,function(m){window.__terr=String(m&&m.message||m);done()})}catch(x){done()}return}
+if(!window.speechSynthesis){done();return}
+var u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=rate;u.onend=u.onerror=done;
+var vs=speechSynthesis.getVoices();var v=vs.filter(function(x){return x.lang==="en-US"})[0]||vs.filter(function(x){return x.lang.indexOf("en")===0})[0];if(v)u.voice=v;
+speechSynthesis.speak(u)}
 document.addEventListener("click",function(e){
-var b=e.target.closest(".spk,.exb");if(!b||!window.speechSynthesis)return;
+var b=e.target.closest(".spk,.exb");if(!b)return;
 var was=b.classList.contains("on");
-speechSynthesis.cancel();
+stopSpeak();
 document.querySelectorAll(".spk.on").forEach(function(x){x.classList.remove("on")});
 if(was)return;
-var u=new SpeechSynthesisUtterance(b.dataset.w);u.lang="en-US";u.rate=.85;
-b.classList.add("on");u.onend=u.onerror=function(){b.classList.remove("on")};
-var vs=speechSynthesis.getVoices();var v=vs.filter(function(x){return x.lang==="en-US"})[0]||vs.filter(function(x){return x.lang.indexOf("en")===0})[0];if(v)u.voice=v;
-speechSynthesis.speak(u);
+b.classList.add("on");
+say(b.dataset.w,.85,function(){b.classList.remove("on")});
 });
 var POS=[["","Hammasi"],["n","Ot"],["v","Fe’l"],["a","Sifat"],["d","Ravish"],["o","Boshqa"],["!","Yodlanmagan"]];
 function chips(){var w=all(),h="";POS.forEach(function(p){var n=p[0]==="!"?w.filter(function(r){return!LR.has(r[0])}).length:p[0]?w.filter(function(r){return(r[4]||"o")===p[0]}).length:w.length;h+='<button class="chip" data-k="'+p[0]+'" aria-pressed="'+(pos===p[0])+'">'+p[1]+' '+n+'</button>'});document.getElementById("chips").innerHTML=h}
@@ -384,7 +391,7 @@ function fixes(s){var m,o=[];if(/(^|[\s,.!?])i([\s,.!?]|$)/.test(s))o.push("“i
 function react(k,s){var m,n;if(k==="name"){m=s.match(/(?:name is|i am|i['’]m|im)\s+([A-Za-z]+)/i)||s.match(/^([A-Za-z]+)[.!]?$/);n=m&&m[1].length>1&&!/^(a|an|from|fine|good|ok)$/i.test(m[1])?cap(m[1].toLowerCase()):"";if(n)uname=n;return n?["Nice to meet you, "+n+"!","Tanishganimdan xursandman, "+n+"!"]:["Nice to meet you!","Tanishganimdan xursandman!"]}if(k==="from"){m=s.match(/from\s+([A-Za-z ]+?)[.!]?$/i);n=m?cap(m[1].trim()):"";return n?["Oh, "+n+"! That sounds nice.","Voy, "+n+"! Yaxshi ekan."]:["That sounds nice.","Yaxshi ekan."]}return{job:["That is a good job!","Bu yaxshi kasb!"],like:["Great! I like that too.","Zo’r! Men ham buni yoqtiraman."],family:["That is nice.","Bu yaxshi."],food:["Delicious!","Mazali!"]}[k]||["Good!","Yaxshi!"]}
 function obot(s){var l=s.toLowerCase(),r,fc=QS[cq]&&QS[cq].c.some(function(x){return x[0].toLowerCase()===l}),dw=fc?null:dlook(s);if(dw){bub("“"+dw.s+"” = "+dw.e.en,"O’zbekcha: "+g1(dw.e,"uz")+" · Русский: "+g1(dw.e,"ru")+" · Тоҷикӣ: "+g1(dw.e,"tj"));if(QS[cq]){bub(QS[cq].q,QS[cq].u);chipsq()}return}if(!/[a-z]/i.test(s)){bub("Please try in English.","Iltimos, inglizcha yozing.");return}if(!fc&&/\b(bye|goodbye|see you)\b/.test(l)){bub("Goodbye! See you tomorrow.","Xayr! Ertagacha, ko’rishguncha.");cend=true;chipsq();return}if(fc){r=sreact(QS[cq],s);cq++}else if(/how are you/.test(l))r=["I’m fine, thank you! And you?","Men yaxshiman, rahmat! Siz-chi?"];else if(/(your name|who are you)/.test(l))r=["My name is Sam. I am your English friend.","Mening ismim Sam. Men sizning ingliz tili do’stingizman."];else if(/thank/.test(l))r=["You’re welcome!","Marhamat!"];else if(/sorry/.test(l)&&l.length<12)r=["No problem!","Hechqisi yo’q!"];else if(/(don[’']t understand|do not understand|repeat|say again)/.test(l))r=["Sure! Let me say it again.","Albatta! Yana aytaman."];else if(/how old are you/.test(l))r=["I am a robot, so I have no age. How old are you?","Men robotman, yoshim yo’q. Siz necha yoshdasiz?"];else if(/\?\s*$/.test(s))r=["Good question! Let’s practice English.","Yaxshi savol! Keling, ingliz tilini mashq qilamiz."];else{r=sreact(QS[cq],s);cq++}bub(r[0],r[1]);if(cq>=QS.length){bub(SCN[sck].e[0].replace("!",(uname?", "+uname:"")+"!"),SCN[sck].e[1]);cend=true}else bub(QS[cq].q,QS[cq].u);chipsq()}
 function aiBot(t){var tr=hist.slice(-12).map(function(m){return(m.r==="user"?"Learner: ":"Sam: ")+m.t}).join("\n");cm.insertAdjacentHTML("beforeend",'<div class="bub bot" id="ld"><div class="bu">...</div></div>');SM(SYS+" Role-play: "+SCN[sck].p+"\n\n"+tr+"\nSam:",{cache:false}).then(function(r){var l=document.getElementById("ld");if(l)l.remove();var en=[],uz="",fx="";r.text.split("\n").forEach(function(x){x=x.trim();if(!x)return;if(/^UZ:/i.test(x))uz=x.replace(/^UZ:\s*/i,"");else if(/^Tuzatish:/i.test(x))fx=x.replace(/^Tuzatish:\s*/i,"");else en.push(x)});bub(en.join(" ")||r.text,uz);if(fx){cm.insertAdjacentHTML("beforeend",'<div class="bnote">Tuzatish: '+esc(fx)+'</div>');cm.scrollTop=cm.scrollHeight}}).catch(function(){var l=document.getElementById("ld");if(l)l.remove();aim=false;cai.setAttribute("aria-pressed","false");bub("AI is not available now.","AI hozir javob bermadi, oflayn rejimga o’tildi.");obot(t)})}
-function csend(t){t=(t||cx.value).trim();if(!t)return;if(window.speechSynthesis)speechSynthesis.cancel();cx.value="";if(cend&&!aim){cstart();return}mine(t,aim?"":fixes(t));if(aim)aiBot(t);else obot(t)}
+function csend(t){t=(t||cx.value).trim();if(!t)return;stopSpeak();cx.value="";if(cend&&!aim){cstart();return}mine(t,aim?"":fixes(t));if(aim)aiBot(t);else obot(t)}
 document.getElementById("cs").addEventListener("click",function(){csend()});
 cx.addEventListener("keydown",function(e){if(e.key==="Enter")csend()});
 cc.addEventListener("click",function(e){var b=e.target.closest(".sg");if(b)csend(b.dataset.a)});
@@ -404,8 +411,8 @@ function scn(){document.getElementById("csc").innerHTML=Object.keys(SCN).map(fun
 document.getElementById("csc").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;sck=b.dataset.s;scn();cstart()});
 function sreact(st,s){var r=st.r;if(!r)return react(st.k,s);if(Array.isArray(r))return r;var l=s.toLowerCase();return(/\b(yes|yeah|sure|ok|okay)\b/.test(l)&&r.y)||(/\b(no|not)\b|n[’']t/.test(l)&&r.n)||r.d||["Okay.","Yaxshi."]}
 function dlook(s){var m=s.match(/^(?:what is|what’s|what's|what does|how (?:do you |to )?say|translate)\s+(.+?)(?:\s+(?:in|to)\s+(?:english|uzbek|russian|tajik))?\s*(?:mean)?\??$/i)||s.match(/^(.+?)\s+(?:nima|qanday)\??$/i);if(!m)return null;var w=m[1].replace(/^["“‘']|["”’']$/g,"").trim();tbuild();var n=nz(w);if(!n)return null;var src=detect(n,w),x=IDX[src][n];return x?{s:w,e:x[0]}:null}
-function talk(t){if(!window.speechSynthesis)return;var u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;var vs=speechSynthesis.getVoices(),v=vs.filter(function(x){return x.lang==="en-US"})[0];if(v)u.voice=v;speechSynthesis.speak(u)}
-document.getElementById("cvo").addEventListener("click",function(){vo=!vo;this.setAttribute("aria-pressed",vo);if(!vo&&window.speechSynthesis)speechSynthesis.cancel()});
+function talk(t){say(t,.9)}
+document.getElementById("cvo").addEventListener("click",function(){vo=!vo;this.setAttribute("aria-pressed",vo);if(!vo)stopSpeak()});
 document.getElementById("ctr").addEventListener("click",function(){var h=document.getElementById("chat").classList.toggle("hu");this.setAttribute("aria-pressed",!h)});
 var onl=true,tmr=0,tseq=0,MC={en:"en",ru:"ru",uz:"uz",tj:"tg"},LN2={en:"English",ru:"Russian",uz:"Uzbek (Latin script)",tj:"Tajik (Cyrillic script)"};
 function online(t,src){var tg=LS.filter(function(l){return l!==src});if(SM){return SM("Translate the text from "+LN2[src]+" into "+tg.map(function(l){return LN2[l]}).join(", ")+". Reply ONLY with a JSON object that has the keys "+tg.map(function(l){return'"'+l+'"'}).join(", ")+" (en=English, ru=Russian, uz=Uzbek in Latin script, tj=Tajik in Cyrillic script) and the translations as string values. Text: "+t,{cache:false}).then(function(r){var m=r.text.match(/\{[\s\S]*\}/);return JSON.parse(m[0])})}if(t.length>450)return Promise.reject(new Error("long"));return Promise.all(tg.map(function(l){return fetch("https://api.mymemory.translated.net/get?q="+encodeURIComponent(t)+"&langpair="+MC[src]+"|"+MC[l]).then(function(r){return r.json()}).then(function(j){var x=j&&j.responseData&&j.responseData.translatedText;if(!x||/MYMEMORY|QUERY LENGTH/i.test(x))throw new Error("bad");return[l,x]})})).then(function(a){var o={};a.forEach(function(x){o[x[0]]=x[1]});return o})}
@@ -438,6 +445,14 @@ document.getElementById("aa").addEventListener("click",function(){var o=document
 vapply();
 scn();
 rules();phrases();chips();render();
+</script>
+<div id="dbg" style="position:fixed;left:0;right:0;top:0;z-index:99999;background:#000;color:#0f0;font:11px/1.3 monospace;padding:4px 6px;padding-top:calc(4px + env(safe-area-inset-top,0px));white-space:pre-wrap">...</div>
+<script>
+(function(){var el=document.getElementById("dbg"),er="";
+window.addEventListener("error",function(e){er=(e.message||"")+" @"+(e.lineno||"")});
+function up(){var h=document.documentElement;el.textContent="TEST v2 (bosib yoping)\ncordova:"+(!!window.cordova)+" TTS:"+(!!window.TTS)+" speechSynth:"+(!!window.speechSynthesis)+"\ntheme:"+(h.getAttribute("data-theme")||"auto")+" dark-media:"+matchMedia("(prefers-color-scheme: dark)").matches+" bg:"+getComputedStyle(document.body).backgroundColor+"\nTTS ok:"+(window.__tok||0)+" TTS xato:"+(window.__terr||"-")+"\nJS xato:"+(er||"-")}
+el.addEventListener("click",function(){el.style.display="none"});
+setInterval(up,700);up();document.addEventListener("deviceready",up)})();
 </script>
 </body>
 </html>
