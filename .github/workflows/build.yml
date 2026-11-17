@@ -44,6 +44,9 @@ jobs:
       - name: Add Android platform
         run: cordova platform add android
 
+      - name: Add TTS plugin
+        run: cordova plugin add cordova-plugin-tts-advanced
+
       - name: Build Debug APK
         run: cordova build android
 
@@ -52,4 +55,3 @@ jobs:
         with:
           name: lugat-daftari-debug
           path: platforms/android/app/build/outputs/apk/debug/*.apk
-          retention-days: 30
