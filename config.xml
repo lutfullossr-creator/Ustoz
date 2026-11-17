@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="uz.lugat.daftari" version="1.0.0"
         xmlns="http://www.w3.org/ns/widgets"
-        xmlns:cdv="http://cordova.apache.org/ns/1.0">
+        xmlns:cdv="http://cordova.apache.org/ns/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
     <name>Lug'at daftari</name>
     <description>Oflayn lug'at va mashqlar</description>
     <author email="you@example.com">Siz</author>
@@ -9,12 +10,16 @@
     <allow-navigation href="*" />
     <allow-intent href="*" />
     <preference name="Orientation" value="portrait" />
-    <preference name="Fullscreen" value="false" />
-    <preference name="StatusBarBackgroundColor" value="#0b3fa8" />
     <preference name="android-minSdkVersion" value="24" />
     <preference name="android-targetSdkVersion" value="34" />
     <preference name="AndroidInsecureFileModeEnabled" value="true" />
     <platform name="android">
-        <preference name="AndroidWindowSplashScreenBackground" value="#e8effa" />
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <queries>
+                <intent>
+                    <action android:name="android.intent.action.TTS_SERVICE" />
+                </intent>
+            </queries>
+        </config-file>
     </platform>
 </widget>
